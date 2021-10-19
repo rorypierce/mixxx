@@ -154,6 +154,19 @@ jobs:
       run: sudo rm cmake cpack ctest
       working-directory: /usr/local/bin
 
+    # vcpkg includes the CMake version used in its cache keys and uses the version of
+    # CMake installed in GitHub Actions. However, this is newer than what vcpkg
+    # requires, so vcpkg uses it instead of downloading its own CMake version.
+    # This is problematic because it requires developers building locally to have
+    # the exact same version of CMake as GitHub Actions. Hack around this for now
+    # by removing GitHub Actions' version of CMake to get vcpkg to download its own.
+    # TODO: remove this after https://github.com/microsoft/vcpkg-tool/pull/223 is merged
+    # and used in vcpkg.
+    - name: "[Windows] Use CMake version from vcpkg"
+      if: runner.os == 'Windows'
+      run: rm -rf '/C/Program Files/CMake'
+      shell: bash
+
     - name: "[macOS] Import Apple code signing identity"
       id: apple_codesign
       if: runner.os == 'macOS' && env.MACOS_CODESIGN_OPENSSL_PASSWORD != null && env.MACOS_CODESIGN_CERTIFICATE_PASSWORD != null
